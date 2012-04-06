@@ -6,6 +6,10 @@ default[:rabbitmq][:config] = nil
 default[:rabbitmq][:logdir] = nil
 default[:rabbitmq][:mnesiadir] = nil
 
+# if you need to specify a range of ports for rabbit to use,
+# make inet_dist_listen_range an array containing the min and max port numbers
+default[:rabbitmq][:inet_dist_listen_range] = nil
+
 # config file location
 # http://www.rabbitmq.com/configure.html#define-environment-variables
 # "The .config extension is automatically appended by the Erlang runtime."

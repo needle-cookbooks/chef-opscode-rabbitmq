@@ -8,3 +8,4 @@
 <% if node[:rabbitmq][:config] -%>CONFIG_FILE=<%= node[:rabbitmq][:config] %><% end %>
 <% if node[:rabbitmq][:logdir] -%>LOG_BASE=<%= node[:rabbitmq][:logdir] %><% end %>
 <% if node[:rabbitmq][:mnesiadir] -%>MNESIA_BASE=<%= node[:rabbitmq][:mnesiadir] %><% end %>
+<% if node[:rabbitmq][:inet_dist_listen_range].is_a?(Array) -%>SERVER_ERL_ARGS="$SERVER_ERL_ARGS -kernel inet_dist_listen_min <%= node[:rabbitmq][:inet_dist_listen_range].first %> -kernel inet_dist_listen_max <%= node[:rabbitmq][:inet_dist_listen_range].last %>"<% end %>
