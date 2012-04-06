@@ -80,6 +80,27 @@ service "rabbitmq-server" do
   supports :status => true, :restart => true
 end
 
+cluster_nodes = [ ]
+
+if node[:rabbitmq][:cluster]
+    # if a cluster name is provided, lets try using search to populate the config file
+    if node[:rabbitmq][:cluster].is_a?(String)
+      rabbit_node_name = node[:rabbitmq][:nodename] ||= 'rabbit'
+      rabbits = search(:node, "rabbitmq_cluster:#{node[:rabbitmq][:cluster]} AND chef_environment:#{node.chef_environment}")
+      cluster_nodes = rabbits.map{|n| "#{rabbit_node_name}@#{n[:name]}"}
+    else # this should be backward compatible
+      cluster_nodes = node[:rabbitmq][:cluster_disk_nodes]
+    end
+end
+
+template "/etc/rabbitmq/rabbitmq.config" do
+  source "rabbitmq.config.erb"
+  owner "root"
+  group "root"
+  mode 0644
+  variables(:cluster_nodes => cluster_nodes.sort)
+  notifies :restart, "service[rabbitmq-server]", :immediately
+end
 
 if File.exists?(node['rabbitmq']['erlang_cookie_path'])
   existing_erlang_key =  File.read(node['rabbitmq']['erlang_cookie_path'])
@@ -102,16 +123,3 @@ if node['rabbitmq']['cluster'] and node['rabbitmq']['erlang_cookie'] != existing
   service "rabbitmq-server" do
     action :start
   end
-end
-
-template "/etc/rabbitmq/rabbitmq.config" do
-  source "rabbitmq.config.erb"
-  owner "root"
-  group "root"
-  mode 0644
-  notifies :restart, "service[rabbitmq-server]", :immediately
-end
-
-service "rabbitmq-server" do
-  action [ :enable, :start ]
-end
