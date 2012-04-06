@@ -60,9 +60,20 @@ when "redhat", "centos", "scientific"
   end
 end
 
+cluster_nodes = [ ]
+
 if node[:rabbitmq][:cluster]
-    # If this already exists, don't do anything
-    # Changing the cookie will stil have to be a manual process
+    # if a cluster name is provided, lets try using search to populate the config file
+    if node[:rabbitmq][:cluster].is_a?(String)
+      rabbit_node_name = node[:rabbitmq][:nodename] ||= 'rabbit'
+      rabbits = search(:node, "rabbitmq_cluster:#{node[:rabbitmq][:cluster]} AND chef_environment:#{node.chef_environment}")
+      cluster_nodes = rabbits.map{|n| "#{rabbit_node_name}@#{n[:name]}"}
+    else
+      cluster_nodes = node[:rabbitmq][:cluster_disk_nodes]
+    end
+
+    # If an erlang cookie already exists, don't do anything
+    # Changing the cookie will still have to be a manual process
     template "/var/lib/rabbitmq/.erlang.cookie" do
       source "doterlang.cookie.erb"
       owner "rabbitmq"
@@ -77,6 +88,7 @@ template "/etc/rabbitmq/rabbitmq.config" do
   owner "root"
   group "root"
   mode 0644
+  variables(:cluster_nodes => cluster_nodes.sort)
   notifies :restart, "service[rabbitmq-server]"
 end
 
