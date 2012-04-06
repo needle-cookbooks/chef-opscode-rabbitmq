@@ -9,6 +9,10 @@ default['rabbitmq']['mnesiadir'] = nil
 # RabbitMQ version to install for "redhat", "centos", "scientific", and "amazon".
 default['rabbitmq']['version'] = '2.8.4'
 
+# if you need to specify a range of ports for rabbit to use,
+# make inet_dist_listen_range an array containing the min and max port numbers
+default[:rabbitmq][:inet_dist_listen_range] = nil
+
 # config file location
 # http://www.rabbitmq.com/configure.html#define-environment-variables
 # "The .config extension is automatically appended by the Erlang runtime."

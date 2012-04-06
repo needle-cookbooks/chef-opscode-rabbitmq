@@ -43,6 +43,12 @@ attribute "rabbitmq/mnesiadir",
   :display_name => "RabbitMQ Mnesia database directory",
   :description => "Path to the directory for Mnesia database files."
 
+attribute "rabbitmq/inet_dist_listen_range",
+  :display_name => "RabbitMQ port range",
+  :description => "Array containing min and max port numbers",
+  :default => nil,
+  :type => "array"
+
 attribute "rabbitmq/cluster",
   :display_name => "RabbitMQ clustering",
   :description => "Whether to activate clustering.",
