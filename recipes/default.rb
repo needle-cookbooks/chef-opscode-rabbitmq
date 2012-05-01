@@ -83,14 +83,16 @@ end
 cluster_nodes = [ ]
 
 if node[:rabbitmq][:cluster]
+
     # if a cluster name is provided, lets try using search to populate the config file
     if node[:rabbitmq][:cluster].is_a?(String)
       rabbit_node_name = node[:rabbitmq][:nodename] ||= 'rabbit'
       rabbits = search(:node, "rabbitmq_cluster:#{node[:rabbitmq][:cluster]} AND chef_environment:#{node.chef_environment}")
       cluster_nodes = rabbits.map{|n| "#{rabbit_node_name}@#{n[:name]}"}
-    else # this should be backward compatible
+  else
       cluster_nodes = node[:rabbitmq][:cluster_disk_nodes]
     end
+
 end
 
 template "/etc/rabbitmq/rabbitmq.config" do
@@ -109,6 +111,10 @@ else
 end
 
 if node['rabbitmq']['cluster'] and node['rabbitmq']['erlang_cookie'] != existing_erlang_key
+
+  data_bag_key = Chef::EncryptedDataBagItem.load_secret(node['data_bag_key'])
+  secrets = Chef::EncryptedDataBagItem.load("secrets", node.chef_environment, data_bag_key)
+  
   service "rabbitmq-server" do
     action :stop
   end
@@ -118,6 +124,11 @@ if node['rabbitmq']['cluster'] and node['rabbitmq']['erlang_cookie'] != existing
     owner "rabbitmq"
     group "rabbitmq"
     mode 0400
+    if node[:rabbitmq][:cluster].is_a?(String)
+      variables(:erlang_cookie => secrets['rabbitmq']["#{node[:rabbitmq][:cluster]}"]['erlang_cookie'])
+    else
+      variables(:erlang_cookie => node[:rabbitmq][:erlang_cookie])
+    end
   end
 
   service "rabbitmq-server" do
