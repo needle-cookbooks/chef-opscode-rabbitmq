@@ -88,8 +88,12 @@ if node[:rabbitmq][:cluster]
     if node[:rabbitmq][:cluster].is_a?(String)
       rabbit_node_name = node[:rabbitmq][:nodename] ||= 'rabbit'
       rabbits = search(:node, "rabbitmq_cluster:#{node[:rabbitmq][:cluster]} AND chef_environment:#{node.chef_environment}")
-      cluster_nodes = rabbits.map{|n| "#{rabbit_node_name}@#{n[:name]}"}
-  else
+      rabbits.each do |n|
+        unless n[:name] == node[:name]
+          cluster_nodes << "#{rabbit_node_name}@#{n[:name]}"
+        end
+      end
+    else
       cluster_nodes = node[:rabbitmq][:cluster_disk_nodes]
     end
 
