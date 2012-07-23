@@ -139,3 +139,4 @@ if node['rabbitmq']['cluster'] and node['rabbitmq']['erlang_cookie'] != existing
   service "rabbitmq-server" do
     action :start
   end
+end
